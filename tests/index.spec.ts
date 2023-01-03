@@ -9,6 +9,7 @@ const SQL_INJECTION = `'; DROP TABLE teams; --`;
 const DOM_XSS = `</script><script>alert("XSS")</script>`;
 
 const TEAM_ALREADY_EXIST_ERROR = "a team with the same name already exists";
+const INTERNAL_SERVER_ERROR = "Server Error (500)";
 
 const USER = {
   name: "John Doe",
@@ -20,6 +21,15 @@ const USER = {
   },
   hiringDate: "2021-01-01",
   jobTitle: "Software Engineer",
+};
+
+const USER_WITH_LONG_ZIP_CODE = {
+  ...USER,
+  address: {
+    ...USER.address,
+    zipCode:
+      "757575757575757757575757575757575757577575757575757575757575757757575757575",
+  },
 };
 
 test("should not allow to create a new team with an existing team name", async ({
@@ -61,6 +71,7 @@ test("should not allow DOM XSS", async ({ page }: { page: Page }) => {
   await expect(locator).toBeVisible();
 });
 
+// TO BE IMPLEMENTED
 test("should not allow to delete a team containing players", async ({
   page,
 }: {
@@ -75,4 +86,16 @@ test("should not allow to delete a team containing players", async ({
   // Try to delete the team
 
   // Assert that the error message is visible
+});
+
+test("should not allow to create a new user with a long zip code", async ({
+  page,
+}: {
+  page: Page;
+}) => {
+  // Create a new user
+  await createNewUser(page, USER_WITH_LONG_ZIP_CODE);
+  // Assert that the error message is visible
+  const locator = page.getByText(INTERNAL_SERVER_ERROR);
+  await expect(locator).toBeVisible();
 });
