@@ -16,6 +16,7 @@
   },
   "homepage": "https://github.com/Nastir-F/efrei-2023-st2-tst-prj-team-c#readme",
   "devDependencies": {
-    "@playwright/test": "^1.29.1"
+    "@playwright/test": "^1.29.1",
+    "guid-typescript": "^1.0.9"
   }
 }
