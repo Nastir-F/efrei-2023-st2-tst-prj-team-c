@@ -5,7 +5,7 @@ import { createNewTeam, createNewUser } from "../utils";
 const NEW_TEAM_NAME = "Test";
 const EXISTING_TEAM_NAME = NEW_TEAM_NAME;
 const SECOND_TEAM_NAME = "Test 2";
-const EMPTY_TEAM_LIST = "---------"
+const EMPTY_TEAM_LIST = "---------";
 
 const SQL_INJECTION = `'; DROP TABLE teams; --`;
 const DOM_XSS = `</script><script>alert("XSS")</script>`;
@@ -32,13 +32,24 @@ const USER_WITH_LONG_ZIP_CODE = {
   },
 };
 
+const USER_UPDATE = {
+  name: "Jean Dupont",
+  email: "jean.dupont@email.com",
+  address: {
+    street: "1 rue de la Paix",
+    city: "Paris",
+    zipCode: "75001",
+  },
+  hiringDate: "2023-07-07",
+  jobTitle: "CEO",
+};
+
 test.beforeEach(async ({ page }) => {
   await page.goto("https://c.hr.dmerej.info/reset_db");
   await page.getByRole("button", { name: "Proceed" }).click();
 });
 
 test.describe("Teams", () => {
-
   test("should allow to create a new team", async ({ page }: { page: Page }) => {
     // Create a new team
     await createNewTeam(page, NEW_TEAM_NAME);
@@ -59,7 +70,7 @@ test.describe("Teams", () => {
     await expect(locator).toBeVisible();
   });
 
-  // TO BE IMPLEMENTED
+  // TODO
   test("should not allow to delete a team containing users", async ({ page }: { page: Page }) => {
     // Create a new team
     await createNewTeam(page, NEW_TEAM_NAME);
@@ -72,7 +83,7 @@ test.describe("Teams", () => {
     // Assert that the error message is visible
   });
 
-  // TO BE IMPLEMENTED
+  // TODO
   test("should not allow user to be in multiple teams", async ({ page }: { page: Page }) => {
     // Create a new team
     await createNewTeam(page, NEW_TEAM_NAME);
@@ -109,16 +120,60 @@ test.describe("Users", () => {
     await expect(page.locator("table > tbody > tr > td")).toContainText([USER.name]);
   });
 
-  test("should update user information", async ({ page }: { page: Page }) => {
+  test("should update user basic information", async ({ page }: { page: Page }) => {
     // Create a new user
     await createNewUser(page, USER);
-    // Update the user information
+    // Update the basic information
     await page.click("text=Edit");
     await page.click("text=Update basic info");
-    await page.getByPlaceholder('Name').fill('Jean Dupont');
+    await page.getByPlaceholder("Name").fill(USER_UPDATE.name);
+    await page.getByPlaceholder("Email").fill(USER_UPDATE.email);
     await page.click("text=Update");
-    // Check if the user information is updated
-    await expect(page.getByText('Jean Dupont')).toBeVisible();
+    // Check if the user basic information is updated
+    await expect(page.getByText(USER_UPDATE.name + " - " + USER_UPDATE.email)).toBeVisible();
+  });
+
+  // ! The test is failing because address 2 is modified
+  test("should update user address", async ({ page }: { page: Page }) => {
+    // Create a new user
+    await createNewUser(page, USER);
+    // Update the address
+    await page.click("text=Edit");
+    await page.click("text=Update address");
+    await page.locator("#id_address_line1").fill(USER_UPDATE.address.street);
+    await page.locator("#id_address_line2").fill("");
+    await page.getByPlaceholder("City").fill(USER_UPDATE.address.city);
+    await page.getByPlaceholder("Zip code").fill(USER_UPDATE.address.zipCode);
+    await page.click("text=Update");
+    // Check if the user address is updated
+    await page.click("text=Update address");
+    await expect(page.locator("#id_address_line1")).toHaveValue(USER_UPDATE.address.street);
+    await expect(page.locator("#id_address_line2")).toHaveValue("");
+    await expect(page.getByPlaceholder("City")).toHaveValue(USER_UPDATE.address.city);
+    await expect(page.getByPlaceholder("Zip code")).toHaveValue(USER_UPDATE.address.zipCode);
+  });
+
+  test("should update user contract", async ({ page }: { page: Page }) => {
+    // Create a new user
+    await createNewUser(page, USER);
+    // Update the contract
+    await page.click("text=Edit");
+    await page.click("text=Update contract");
+    await page.getByPlaceholder("Job title").fill(USER_UPDATE.jobTitle);
+    await page.click("text=Update");
+    // Check if the user contract is updated
+    await expect(page.getByText(USER_UPDATE.jobTitle)).toBeVisible();
+  });
+
+  test("should allow to promote a user as a manager", async ({ page }: { page: Page }) => {
+    // Create a new user
+    await createNewUser(page, USER);
+    // Promote the user as a manager
+    await page.click("text=Edit");
+    await page.click("text=Promote as manager");
+    await page.click("text=Proceed");
+    // Check if the user is displayed in the managers table
+    await expect(page.locator("table > tbody > tr > td > strong")).toContainText('yes');
   });
 
   test("should not allow to create a new user with a long zip code", async ({ page }: { page: Page }) => {
