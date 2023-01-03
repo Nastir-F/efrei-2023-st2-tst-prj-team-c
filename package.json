@@ -1,0 +1,21 @@
+{
+  "name": "efrei-2023-st2-tst-prj-team-c",
+  "version": "1.0.0",
+  "description": "This repository contains all the information you need to complete the\r project for the ST2 Software Testing course.",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nastir-F/efrei-2023-st2-tst-prj-team-c.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Nastir-F/efrei-2023-st2-tst-prj-team-c/issues"
+  },
+  "homepage": "https://github.com/Nastir-F/efrei-2023-st2-tst-prj-team-c#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.29.1"
+  }
+}
