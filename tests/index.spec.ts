@@ -4,6 +4,7 @@ import { createNewTeam, createNewUser } from "../utils";
 
 const NEW_TEAM_NAME = "Test";
 const EXISTING_TEAM_NAME = NEW_TEAM_NAME;
+const SECOND_TEAM_NAME = "Test 2";
 
 const SQL_INJECTION = `'; DROP TABLE teams; --`;
 const DOM_XSS = `</script><script>alert("XSS")</script>`;
@@ -22,7 +23,6 @@ const USER = {
   hiringDate: "2021-01-01",
   jobTitle: "Software Engineer",
 };
-
 const USER_WITH_LONG_ZIP_CODE = {
   ...USER,
   address: {
@@ -32,70 +32,93 @@ const USER_WITH_LONG_ZIP_CODE = {
   },
 };
 
-test("should not allow to create a new team with an existing team name", async ({
-  page,
-}: {
-  page: Page;
-}) => {
-  // Create a new team
-  await createNewTeam(page, NEW_TEAM_NAME);
-  // Try to create a new team with the same name
-  await createNewTeam(page, EXISTING_TEAM_NAME);
+test.describe("Teams", () => {
+  test("should not allow to create a new team with an existing team name", async ({
+    page,
+  }: {
+    page: Page;
+  }) => {
+    // Create a new team
+    await createNewTeam(page, NEW_TEAM_NAME);
+    // Try to create a new team with the same name
+    await createNewTeam(page, EXISTING_TEAM_NAME);
 
-  // Assert that the error message is visible
-  const locator = page.getByText(TEAM_ALREADY_EXIST_ERROR);
-  await expect(locator).toBeVisible();
+    // Assert that the error message is visible
+    const locator = page.getByText(TEAM_ALREADY_EXIST_ERROR);
+    await expect(locator).toBeVisible();
+  });
+
+  // TO BE IMPLEMENTED
+  test("should not allow to delete a team containing players", async ({
+    page,
+  }: {
+    page: Page;
+  }) => {
+    // Create a new team
+    await createNewTeam(page, NEW_TEAM_NAME);
+    // Create a new user
+    await createNewUser(page, USER);
+
+    // Add the user to the team
+    // Try to delete the team
+
+    // Assert that the error message is visible
+  });
+
+  // TO BE IMPLEMENTED
+  test("should not allow user to be in multiple teams", async ({
+    page,
+  }: {
+    page: Page;
+  }) => {
+    // Create a new team
+    await createNewTeam(page, NEW_TEAM_NAME);
+    // Create a second team
+    await createNewTeam(page, SECOND_TEAM_NAME);
+    // Create a new user
+    await createNewUser(page, USER);
+    // Add the user to the team
+    // Add the user to the second team
+    // Assert that the error message is visible
+  });
 });
 
-test("should not allow SQL injection", async ({ page }: { page: Page }) => {
-  // Create a new team
-  await createNewTeam(page, SQL_INJECTION);
-
-  // Try to create a new team with the same name
-  await createNewTeam(page, SQL_INJECTION);
-
-  // Assert that the error message is visible
-  const locator = page.getByText(TEAM_ALREADY_EXIST_ERROR);
-  await expect(locator).toBeVisible();
+test.describe("Users", () => {
+  test("should not allow to create a new user with a long zip code", async ({
+    page,
+  }: {
+    page: Page;
+  }) => {
+    // Create a new user
+    await createNewUser(page, USER_WITH_LONG_ZIP_CODE);
+    // Assert that the error message is visible
+    const locator = page.getByText(INTERNAL_SERVER_ERROR);
+    await expect(locator).toBeVisible();
+  });
 });
 
-test("should not allow DOM XSS", async ({ page }: { page: Page }) => {
-  // Create a new team
-  await createNewTeam(page, DOM_XSS);
+test.describe("Security", () => {
+  test("should not allow SQL injection", async ({ page }: { page: Page }) => {
+    // Create a new team
+    await createNewTeam(page, SQL_INJECTION);
 
-  // Try to create a new team with the same name
-  await createNewTeam(page, DOM_XSS);
+    // Try to create a new team with the same name
+    await createNewTeam(page, SQL_INJECTION);
 
-  // Assert that the error message is visible
-  const locator = page.getByText(TEAM_ALREADY_EXIST_ERROR);
-  await expect(locator).toBeVisible();
-});
+    // Assert that the error message is visible
+    const locator = page.getByText(TEAM_ALREADY_EXIST_ERROR);
+    await expect(locator).toBeVisible();
+  });
 
-// TO BE IMPLEMENTED
-test("should not allow to delete a team containing players", async ({
-  page,
-}: {
-  page: Page;
-}) => {
-  // Create a new team
-  await createNewTeam(page, NEW_TEAM_NAME);
-  // Create a new user
-  await createNewUser(page, USER);
+  test("should not allow DOM XSS", async ({ page }: { page: Page }) => {
+    // Create a new team
+    await createNewTeam(page, DOM_XSS);
 
-  // Add the user to the team
-  // Try to delete the team
+    // Try to create a new team with the same name
+    await createNewTeam(page, DOM_XSS);
 
-  // Assert that the error message is visible
-});
-
-test("should not allow to create a new user with a long zip code", async ({
-  page,
-}: {
-  page: Page;
-}) => {
-  // Create a new user
-  await createNewUser(page, USER_WITH_LONG_ZIP_CODE);
-  // Assert that the error message is visible
-  const locator = page.getByText(INTERNAL_SERVER_ERROR);
-  await expect(locator).toBeVisible();
+    // Assert that the error message is visible
+    const locator = page.getByText(TEAM_ALREADY_EXIST_ERROR);
+    await expect(locator).toBeVisible();
+  });
 });
