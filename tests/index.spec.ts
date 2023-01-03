@@ -44,10 +44,22 @@ const USER_UPDATE = {
   jobTitle: "CEO",
 };
 
-test.beforeEach(async ({ page }) => {
-  await page.goto("https://c.hr.dmerej.info/reset_db");
-  await page.getByRole("button", { name: "Proceed" }).click();
-});
+const USER_WITH_HTML_TAG = {
+  name: "<b>John Doe</b>",
+  email: "john.doe@email.com",
+  address: {
+    street: "<b>123 Main Street</b>",
+    city: "<b>New York</b>",
+    zipCode: "12345",
+  },
+  hiringDate: "2021-01-01",
+  jobTitle: "<b>Software Engineer</b>",
+};
+
+// test.beforeEach(async ({ page }) => {
+//   await page.goto("https://c.hr.dmerej.info/reset_db");
+//   await page.getByRole("button", { name: "Proceed" }).click();
+// });
 
 test.describe("Teams", () => {
   test("should allow to create a new team", async ({ page }: { page: Page }) => {
@@ -118,6 +130,13 @@ test.describe("Users", () => {
     await createNewUser(page, USER);
     // Check if the user is displayed in the table
     await expect(page.locator("table > tbody > tr > td")).toContainText([USER.name]);
+  });
+
+  test("should create a new user with html tag", async ({ page }: { page: Page }) => {
+    // Create a new user
+    await createNewUser(page, USER_WITH_HTML_TAG);
+    // Check if the user is displayed in the table
+    await expect(page.locator("table > tbody > tr > td")).toContainText([USER_WITH_HTML_TAG.name]);
   });
 
   test("should update user basic information", async ({ page }: { page: Page }) => {
