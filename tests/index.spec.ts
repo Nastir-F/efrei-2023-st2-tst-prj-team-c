@@ -110,6 +110,20 @@ test.describe("Teams", () => {
     // Assert that the error message is visible
   });
 
+  test("should allow to delete an empty team", async ({ page }: { page: Page }) => {
+    // Create a new team
+    const newTeamName = Guid.create().toString();
+    await createNewTeam(page, newTeamName);
+    // Delete the team
+    await page
+      .getByRole("row", { name: newTeamName + " View members Delete" })
+      .getByRole("link", { name: "Delete" })
+      .click();
+    await page.click("text=Proceed");
+    // Check if the team is deleted
+    await expect(page.locator("table > tbody > tr > td")).not.toContainText([newTeamName]);
+  });
+
   test("should not display a deleted team", async ({ page }: { page: Page }) => {
     // Create a new team
     const newTeamName = Guid.create().toString();
