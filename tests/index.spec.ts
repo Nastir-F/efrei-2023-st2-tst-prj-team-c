@@ -18,7 +18,7 @@ const USER = {
     city: "New York",
     zipCode: "12345",
   },
-  hiringDate: "2021/01/01",
+  hiringDate: "2021-01-01",
   jobTitle: "Software Engineer",
 };
 
