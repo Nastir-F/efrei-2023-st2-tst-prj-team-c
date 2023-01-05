@@ -9,7 +9,7 @@ test.describe("Users creation", () => {
     const newUser = constants.USER;
     newUser.name = Guid.create().toString();
     await createNewUser(page, newUser);
-    // Check if the user is displayed in the table
+    // Assert that the user is visible in the table
     await expect(
       page.getByRole("row", { name: `${newUser.name} ${newUser.email} no Edit Delete` })
     ).toBeVisible();
@@ -23,14 +23,14 @@ test.describe("Users creation", () => {
     await createNewUser(page, newUser);
     // Try to create a new user with the same email
     await createNewUser(page, newUser);
-    // Check if there is an error message
+    // Assert that the error message is visible
     await expect(page.getByText(constants.EMAIL_ALREADY_EXIST_ERROR)).toBeVisible();
   });
 
   test("should not be able to create a user with spaces in name...", async ({ page }: { page: Page }) => {
     // Create a new user
     await createNewUser(page, constants.USER_WITH_SPACE_IN_FIELD);
-    // Check if there is an error message
+    // Assert that the error message is visible
     await expect(page.getByText(constants.REQUIRED_FIELD_ERROR)).toHaveCount(4);
   });
 
@@ -39,19 +39,20 @@ test.describe("Users creation", () => {
     const newUser = constants.USER_WITH_HTML_TAG;
     newUser.name = "<b>" + Guid.create().toString() + "</b>";
     await createNewUser(page, newUser);
-    // Check if the user is displayed in the table
+    // Assert that the user is visible in the table
     await expect(
       page.getByRole("row", { name: `${newUser.name} ${newUser.email} no Edit Delete` })
     ).toBeVisible();
   });
 
+  // ! The is failing because we have an servor error (500)
   test("should not allow to create a new user with a long zip code", async ({ page }: { page: Page }) => {
     // Create a new user
     const newUser = constants.USER_WITH_LONG_ZIP_CODE;
     newUser.name = Guid.create().toString();
     await createNewUser(page, newUser);
     // Assert that the error message is visible
-    await expect(page.getByText(constants.INTERNAL_SERVER_ERROR)).toBeVisible();
+    await expect(page.getByText(constants.ZIP_CODE_TOO_LONG_ERROR)).toBeVisible();
   });
 });
 
@@ -65,7 +66,7 @@ test.describe("Users update", () => {
     const userUpdate = constants.USER_UPDATE;
     userUpdate.name = Guid.create().toString();
     await updateUser(page, newUser, userUpdate, constants.UPDATE_BASIC_INFO);
-    // Check if the user basic information is updated
+    // Assert that the user basic information is updated
     await expect(page.getByText(`${userUpdate.name} - ${userUpdate.email}`)).toBeVisible();
   });
 
@@ -77,7 +78,7 @@ test.describe("Users update", () => {
     await createNewUser(page, newUser);
     // Update the address
     await updateUser(page, newUser, constants.USER_UPDATE, constants.UPDATE_ADDRESS);
-    // Check if the user address is updated
+    // Assert that the user address is updated
     await page.getByRole("link", { name: "Update address" }).click();
     await expect(page.locator("#id_address_line1")).toHaveValue(constants.USER_UPDATE.address.street);
     await expect(page.locator("#id_address_line2")).toHaveValue("");
@@ -92,7 +93,7 @@ test.describe("Users update", () => {
     await createNewUser(page, newUser);
     // Update the contract
     await updateUser(page, newUser, constants.USER_UPDATE, constants.UPDATE_CONTRACT);
-    // Check if the user contract is updated
+    // Assert that the user contract is updated
     await expect(page.getByText(constants.USER_UPDATE.jobTitle)).toBeVisible();
   });
 
@@ -103,7 +104,7 @@ test.describe("Users update", () => {
     await createNewUser(page, newUser);
     // Promote the user as a manager
     await updateUser(page, newUser, constants.USER_UPDATE, constants.UPDATE_MANAGER);
-    // Check if the user is a manager
+    // Assert that the user is a manager
     await expect(
       page
         .getByRole("row", { name: `${newUser.name} ${newUser.email} yes Edit Delete` })
@@ -121,7 +122,7 @@ test.describe("Users update", () => {
     await createNewUser(page, newUser);
     // Add the user to the team
     await addUserToTeam(page, newUser, newTeamName);
-    // Check if the user is added to the team
+    // Assert that the user is in the team
     await page.goto("https://c.hr.dmerej.info/teams");
     await page
       .getByRole("row", { name: `${newTeamName} View members Delete` })
@@ -145,14 +146,14 @@ test.describe("Users update", () => {
     await addUserToTeam(page, newUser, firstTeamName);
     // Add the user to the second team
     await addUserToTeam(page, newUser, secondTeamName);
-    // Check if the user is in the first team
+    // Assert that the user isn't in the first team
     await page.goto("https://c.hr.dmerej.info/teams");
     await page
       .getByRole("row", { name: `${firstTeamName} View members Delete` })
       .getByRole("link", { name: "View members" })
       .click();
     await expect(page.getByText(newUser.name)).not.toBeVisible();
-    // Check if the user is in the second team
+    // Assert that the user is in the second team
     await page.goto("https://c.hr.dmerej.info/teams");
     await page
       .getByRole("row", { name: `${secondTeamName} View members Delete` })
@@ -170,6 +171,7 @@ test.describe("Users delete", () => {
     await createNewUser(page, newUser);
     // Delete the user
     await deleteUser(page, newUser);
+    // Assert that the user is deleted
     await expect(
       page.getByRole("row", { name: `${newUser.name} ${newUser.email} no Edit Delete` })
     ).not.toBeVisible();
@@ -180,11 +182,12 @@ test.describe("Users delete", () => {
     const newUser = constants.USER;
     newUser.name = Guid.create().toString();
     await createNewUser(page, newUser);
-    // See information when we want to delete the user
+    // Try to delete the user
     await page
       .getByRole("row", { name: `${newUser.name} ${newUser.email} no Edit Delete` })
       .getByRole("link", { name: "Delete" })
       .click();
+    // Assert that the user information is displayed
     await expect(page.getByText(`name: ${newUser.name}`)).toBeVisible();
     await expect(page.getByText(`email: ${newUser.email}`)).toBeVisible();
   });
