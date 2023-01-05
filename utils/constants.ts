@@ -58,6 +58,7 @@ export const SQL_INJECTION = `'; DROP TABLE teams; --`;
 export const DOM_XSS = `</script><script>alert("XSS")</script>`;
 
 export const TEAM_ALREADY_EXIST_ERROR = "a team with the same name already exists";
+export const EMAIL_ALREADY_EXIST_ERROR = "a user with the same email already exists";
 export const INTERNAL_SERVER_ERROR = "Server Error (500)";
 export const REQUIRED_FIELD_ERROR = "This field is required";
 

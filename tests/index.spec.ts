@@ -20,7 +20,7 @@ test.describe("Teams", () => {
     // Create a new team
     const newTeamName = Guid.create().toString();
     await createNewTeam(page, newTeamName);
-    // Check that the team is visible in the table 
+    // Check that the team is visible in the table
     await expect(page.getByRole("row", { name: `${newTeamName} View members Delete` })).toBeVisible();
   });
 
@@ -107,7 +107,19 @@ test.describe("Users", () => {
     ).toBeVisible();
   });
 
-  test("should not be able to create an user with spaces in name, address, city, job title", async ({
+  // ! It's possible to create 2 users with the same email
+  test("should not be able to create a user with an existing email", async ({ page }: { page: Page }) => {
+    // Create a new user
+    const newUser = constants.USER;
+    newUser.name = Guid.create().toString();
+    await createNewUser(page, newUser);
+    // Try to create a new user with the same email
+    await createNewUser(page, newUser);
+    // Check if there is an error message
+    await expect(page.getByText(constants.EMAIL_ALREADY_EXIST_ERROR)).toBeVisible();
+  });
+
+  test("should not be able to create a user with spaces in name, address, city, job title", async ({
     page,
   }: {
     page: Page;
