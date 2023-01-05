@@ -2,11 +2,6 @@ import { test, expect, type Page } from "@playwright/test";
 import { createNewTeam } from "../utils/index";
 import * as constants from "../utils/constants";
 
-// test.afterAll(async ({ page }) => {
-//   await page.goto("https://c.hr.dmerej.info/reset_db");
-//   await page.getByRole("button", { name: "Proceed" }).click();
-// });
-
 test.describe("Security", () => {
   test("should not allow SQL injection", async ({ page }: { page: Page }) => {
     // Create a new team

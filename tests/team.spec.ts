@@ -3,11 +3,6 @@ import { createNewTeam, createNewUser, deleteTeam, addUserToTeam } from "../util
 import * as constants from "../utils/constants";
 import { Guid } from "guid-typescript";
 
-// test.afterAll(async ({ page }) => {
-//   await page.goto("https://c.hr.dmerej.info/reset_db");
-//   await page.getByRole("button", { name: "Proceed" }).click();
-// });
-
 test.describe("Teams creation", () => {
   test("should allow to create a new team", async ({ page }: { page: Page }) => {
     // Create a new team
