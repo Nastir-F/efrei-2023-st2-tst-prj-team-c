@@ -52,7 +52,7 @@ export async function deleteTeam(page: Page, teamName: string): Promise<void> {
     .getByRole("row", { name: teamName + " View members Delete" })
     .getByRole("link", { name: "Delete" })
     .click();
-  await page.click("text=Proceed");
+    await page.getByRole('button', { name: 'Proceed' }).click();
 }
 
 /**
@@ -60,12 +60,20 @@ export async function deleteTeam(page: Page, teamName: string): Promise<void> {
  * @param page
  * @param userId
  */
-export async function addUserToTeam(): Promise<void> {
-  // TO BE IMPLEMENTED
-  // Go to user page list
-  // Select the first user
-  // Edit the user
-  // Add the user to the team
+export async function addUserToTeam(
+  page: Page,
+  userInformation: UserInformation,
+  teamName: string
+): Promise<void> {
+  // TODO
+  await page.goto("https://c.hr.dmerej.info/employees");
+  await page
+    .getByRole("row", { name: userInformation.name + " " + userInformation.email + " no Edit Delete" })
+    .getByRole("link", { name: "Edit" })
+    .click();
+  await page.getByRole('link', { name: 'Add to team' }).click();
+  await page.locator('#id_team').selectOption({ label: teamName + " team" });
+  await page.getByRole('button', { name: 'Add' }).click();
 }
 
 /**
@@ -86,23 +94,23 @@ export async function updateUser(
     .click();
   // Check which information to update
   if (infoToUpdate === constants.UPDATE_BASIC_INFO) {
-    await page.click("text=Update basic info");
+    await page.getByRole('link', { name: constants.UPDATE_BASIC_INFO }).click();
     await page.getByPlaceholder("Name").fill(updateUserInformation.name);
     await page.getByPlaceholder("Email").fill(updateUserInformation.email);
     await page.click("text=Update");
   } else if (infoToUpdate === constants.UPDATE_ADDRESS) {
-    await page.click("text=Update address");
+    await page.getByRole('link', { name: constants.UPDATE_ADDRESS }).click();
     await page.locator("#id_address_line1").fill(constants.USER_UPDATE.address.street);
     await page.locator("#id_address_line2").fill("");
     await page.getByPlaceholder("City").fill(constants.USER_UPDATE.address.city);
     await page.getByPlaceholder("Zip code").fill(constants.USER_UPDATE.address.zipCode);
     await page.click("text=Update");
   } else if (infoToUpdate === constants.UPDATE_CONTRACT) {
-    await page.click("text=Update contract");
+    await page.getByRole('link', { name: constants.UPDATE_CONTRACT }).click();
     await page.getByPlaceholder("Job title").fill(constants.USER_UPDATE.jobTitle);
     await page.click("text=Update");
   } else if (infoToUpdate === constants.UPDATE_MANAGER) {
-    await page.click("text=Promote as manager");
+    await page.getByRole('link', { name: constants.UPDATE_MANAGER }).click();
     await page.click("text=Proceed");
   }
 }

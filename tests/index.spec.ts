@@ -1,12 +1,12 @@
 import { test, expect, type Page } from "@playwright/test";
-import { createNewTeam, createNewUser, deleteTeam, updateUser } from "../utils/index";
+import { createNewTeam, createNewUser, deleteTeam, updateUser, addUserToTeam } from "../utils/index";
 import * as constants from "../utils/constants";
 import { Guid } from "guid-typescript";
 
-// test.afterAll(async ({ page }) => {
-//   await page.goto("https://c.hr.dmerej.info/reset_db");
-//   await page.getByRole("button", { name: "Proceed" }).click();
-// });
+test.afterAll(async ({ page }) => {
+  await page.goto("https://c.hr.dmerej.info/reset_db");
+  await page.getByRole("button", { name: "Proceed" }).click();
+});
 
 test.describe("Teams", () => {
   test("should allow to create a new team", async ({ page }: { page: Page }) => {
@@ -94,7 +94,7 @@ test.describe("Teams", () => {
       .getByRole("row", { name: newUser.name + " " + newUser.email + " no Edit Delete" })
       .getByRole("link", { name: "Edit" })
       .click();
-    await page.click("text=Add to team");
+    await page.getByRole("link", { name: "Add to team" }).click();
     // Check if the team is not displayed in the select
     await expect(page.locator("select > option")).not.toContainText([newTeamName]);
   });
@@ -145,7 +145,7 @@ test.describe("Users", () => {
     // Update the address
     await updateUser(page, newUser, constants.USER_UPDATE, constants.UPDATE_ADDRESS);
     // Check if the user address is updated
-    await page.click("text=Update address");
+    await page.getByRole("link", { name: "Update address" }).click();
     await expect(page.locator("#id_address_line1")).toHaveValue(constants.USER_UPDATE.address.street);
     await expect(page.locator("#id_address_line2")).toHaveValue("");
     await expect(page.getByPlaceholder("City")).toHaveValue(constants.USER_UPDATE.address.city);
@@ -176,6 +176,25 @@ test.describe("Users", () => {
         .getByRole("row", { name: newUser.name + " " + newUser.email + " yes Edit Delete" })
         .getByRole("cell", { name: "yes" })
     ).toBeVisible();
+  });
+
+  test("should add a user to a team", async ({ page }: { page: Page }) => {
+    // Create a new team
+    const newTeamName = Guid.create().toString();
+    await createNewTeam(page, newTeamName);
+    // Create a new user
+    const newUser = constants.USER;
+    newUser.name = Guid.create().toString();
+    await createNewUser(page, newUser);
+    // Add the user to the team
+    await addUserToTeam(page, newUser, newTeamName);
+    // Check if the user is added to the team
+    await page.goto("https://c.hr.dmerej.info/teams");
+    await page
+      .getByRole("row", { name: newTeamName + " View members Delete" })
+      .getByRole("link", { name: "View members" })
+      .click();
+    await expect(page.getByText(newUser.name)).toBeVisible();
   });
 
   test("should not allow to create a new user with a long zip code", async ({ page }: { page: Page }) => {
