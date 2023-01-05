@@ -1,12 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import {
-  createNewTeam,
-  createNewUser,
-  deleteTeam,
-  updateUser,
-  addUserToTeam,
-  deleteUser,
-} from "../utils/index";
+import { createNewTeam, createNewUser, updateUser, addUserToTeam, deleteUser } from "../utils/index";
 import * as constants from "../utils/constants";
 import { Guid } from "guid-typescript";
 
@@ -15,87 +8,7 @@ import { Guid } from "guid-typescript";
 //   await page.getByRole("button", { name: "Proceed" }).click();
 // });
 
-test.describe("Teams", () => {
-  test("should allow to create a new team", async ({ page }: { page: Page }) => {
-    // Create a new team
-    const newTeamName = Guid.create().toString();
-    await createNewTeam(page, newTeamName);
-    // Check that the team is visible in the table
-    await expect(page.getByRole("row", { name: `${newTeamName} View members Delete` })).toBeVisible();
-  });
-
-  test("should not allow to create a new team with an existing team name", async ({
-    page,
-  }: {
-    page: Page;
-  }) => {
-    // Create a new team
-    const newTeamName = Guid.create().toString();
-    await createNewTeam(page, newTeamName);
-    // Try to create a new team with the same name
-    await createNewTeam(page, newTeamName);
-    // Assert that the error message is visible
-    await expect(page.getByText(constants.TEAM_ALREADY_EXIST_ERROR)).toBeVisible();
-  });
-
-  // ! There is an error 500 when we try to create a team with an empty name
-  test("should not be able to create a team with spaces in name", async ({ page }: { page: Page }) => {
-    // Create a new team
-    const newTeamName = "  ";
-    await createNewTeam(page, newTeamName);
-    // Check if there is an error message
-    await expect(page.getByText(constants.REQUIRED_FIELD_ERROR)).toBeVisible();
-  });
-
-  // ! When you delete a team with users, the users are also deleted
-  test("should not allow to delete a team containing users", async ({ page }: { page: Page }) => {
-    // Create a new team
-    const newTeamName = Guid.create().toString();
-    await createNewTeam(page, newTeamName);
-    // Create a new user
-    const newUser = constants.USER;
-    newUser.name = Guid.create().toString();
-    await createNewUser(page, newUser);
-    // Add the user to the team
-    await addUserToTeam(page, newUser, newTeamName);
-    // Try to delete the team
-    await deleteTeam(page, newTeamName);
-    // Assert that the error message is visible
-    await expect(page.getByRole("row", { name: `${newTeamName} View members Delete` })).toBeVisible();
-  });
-
-  test("should allow to delete an empty team", async ({ page }: { page: Page }) => {
-    // Create a new team
-    const newTeamName = Guid.create().toString();
-    await createNewTeam(page, newTeamName);
-    // Delete the team
-    await deleteTeam(page, newTeamName);
-    // Check if the team is deleted
-    await expect(page.getByRole("row", { name: `${newTeamName} View members Delete` })).not.toBeVisible();
-  });
-
-  test("should not display a deleted team", async ({ page }: { page: Page }) => {
-    // Create a new team
-    const newTeamName = Guid.create().toString();
-    await createNewTeam(page, newTeamName);
-    // Delete the team
-    await deleteTeam(page, newTeamName);
-    // Create a new user
-    const newUser = constants.USER;
-    newUser.name = Guid.create().toString();
-    await createNewUser(page, constants.USER);
-    // Try to add the user to the team
-    await page
-      .getByRole("row", { name: `${newUser.name} ${newUser.email} no Edit Delete` })
-      .getByRole("link", { name: "Edit" })
-      .click();
-    await page.getByRole("link", { name: "Add to team" }).click();
-    // Check if the team is not displayed in the select
-    await expect(page.locator("select > option")).not.toContainText([newTeamName]);
-  });
-});
-
-test.describe("Users", () => {
+test.describe("Users creation", () => {
   test("should create a new user", async ({ page }: { page: Page }) => {
     // Create a new user
     const newUser = constants.USER;
@@ -119,11 +32,7 @@ test.describe("Users", () => {
     await expect(page.getByText(constants.EMAIL_ALREADY_EXIST_ERROR)).toBeVisible();
   });
 
-  test("should not be able to create a user with spaces in name, address, city, job title", async ({
-    page,
-  }: {
-    page: Page;
-  }) => {
+  test("should not be able to create a user with spaces in name...", async ({ page }: { page: Page }) => {
     // Create a new user
     await createNewUser(page, constants.USER_WITH_SPACE_IN_FIELD);
     // Check if there is an error message
@@ -149,7 +58,9 @@ test.describe("Users", () => {
     // Assert that the error message is visible
     await expect(page.getByText(constants.INTERNAL_SERVER_ERROR)).toBeVisible();
   });
+});
 
+test.describe("Users update", () => {
   test("should update user basic information", async ({ page }: { page: Page }) => {
     // Create a new user
     const newUser = constants.USER;
@@ -254,7 +165,9 @@ test.describe("Users", () => {
       .click();
     await expect(page.getByText(newUser.name)).toBeVisible();
   });
+});
 
+test.describe("Users delete", () => {
   test("should be able to delete a user", async ({ page }: { page: Page }) => {
     // Create a new user
     const newUser = constants.USER;
@@ -279,31 +192,5 @@ test.describe("Users", () => {
       .click();
     await expect(page.getByText(`name: ${newUser.name}`)).toBeVisible();
     await expect(page.getByText(`email: ${newUser.email}`)).toBeVisible();
-  });
-});
-
-test.describe("Security", () => {
-  test("should not allow SQL injection", async ({ page }: { page: Page }) => {
-    // Create a new team
-    await createNewTeam(page, constants.SQL_INJECTION);
-
-    // Try to create a new team with the same name
-    await createNewTeam(page, constants.SQL_INJECTION);
-
-    // Assert that the error message is visible
-    const locator = page.getByText(constants.TEAM_ALREADY_EXIST_ERROR);
-    await expect(locator).toBeVisible();
-  });
-
-  test("should not allow DOM XSS", async ({ page }: { page: Page }) => {
-    // Create a new team
-    await createNewTeam(page, constants.DOM_XSS);
-
-    // Try to create a new team with the same name
-    await createNewTeam(page, constants.DOM_XSS);
-
-    // Assert that the error message is visible
-    const locator = page.getByText(constants.TEAM_ALREADY_EXIST_ERROR);
-    await expect(locator).toBeVisible();
   });
 });
