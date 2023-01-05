@@ -3,10 +3,10 @@ import { createNewTeam, createNewUser, deleteTeam, updateUser, addUserToTeam } f
 import * as constants from "../utils/constants";
 import { Guid } from "guid-typescript";
 
-test.afterAll(async ({ page }) => {
-  await page.goto("https://c.hr.dmerej.info/reset_db");
-  await page.getByRole("button", { name: "Proceed" }).click();
-});
+// test.afterAll(async ({ page }) => {
+//   await page.goto("https://c.hr.dmerej.info/reset_db");
+//   await page.getByRole("button", { name: "Proceed" }).click();
+// });
 
 test.describe("Teams", () => {
   test("should allow to create a new team", async ({ page }: { page: Page }) => {
@@ -31,7 +31,7 @@ test.describe("Teams", () => {
     await expect(page.getByText(constants.TEAM_ALREADY_EXIST_ERROR)).toBeVisible();
   });
 
-  // TODO
+  // ! When you delete a team with users, the users are also deleted
   test("should not allow to delete a team containing users", async ({ page }: { page: Page }) => {
     // Create a new team
     const newTeamName = Guid.create().toString();
@@ -41,16 +41,11 @@ test.describe("Teams", () => {
     newUser.name = Guid.create().toString();
     await createNewUser(page, newUser);
     // Add the user to the team
-    await page
-      .getByRole("row", { name: newUser.name + " " + newUser.email + " no Edit Delete" })
-      .getByRole("link", { name: "Edit" })
-      .click();
-    await page.getByRole("link", { name: "Add to team" }).click();
-    await page.getByRole("combobox", { name: "Team" });
-    await page.getByRole("button", { name: "Add" }).click();
+    await addUserToTeam(page, newUser, newTeamName);
     // Try to delete the team
-
+    await deleteTeam(page, newTeamName);
     // Assert that the error message is visible
+    await expect(page.getByRole("row", { name: newTeamName + " View members Delete" })).toBeVisible();
   });
 
   // TODO
