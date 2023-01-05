@@ -47,6 +47,7 @@ export const DOM_XSS = `</script><script>alert("XSS")</script>`;
 
 export const TEAM_ALREADY_EXIST_ERROR = "a team with the same name already exists";
 export const INTERNAL_SERVER_ERROR = "Server Error (500)";
+export const REQUIRED_FIELD_ERROR = "This field is required";
 
 export const UPDATE_BASIC_INFO="Update basic info";
 export const UPDATE_ADDRESS="Update address";

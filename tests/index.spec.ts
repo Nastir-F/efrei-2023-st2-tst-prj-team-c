@@ -31,6 +31,15 @@ test.describe("Teams", () => {
     await expect(page.getByText(constants.TEAM_ALREADY_EXIST_ERROR)).toBeVisible();
   });
 
+  // ! There is an error 500 when we try to create a team with an empty name
+  test("should not be able to create a team with an empty name", async ({ page }: { page: Page }) => {
+    // Create a new team
+    const newTeamName = "  ";
+    await createNewTeam(page, newTeamName);
+    // Check if there is an error message
+    await expect(page.getByText(constants.REQUIRED_FIELD_ERROR)).toBeVisible();
+  });
+
   // ! When you delete a team with users, the users are also deleted
   test("should not allow to delete a team containing users", async ({ page }: { page: Page }) => {
     // Create a new team
