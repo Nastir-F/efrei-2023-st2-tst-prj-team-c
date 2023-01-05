@@ -48,22 +48,6 @@ test.describe("Teams", () => {
     await expect(page.getByRole("row", { name: newTeamName + " View members Delete" })).toBeVisible();
   });
 
-  // TODO
-  test("should not allow user to be in multiple teams", async ({ page }: { page: Page }) => {
-    // Create a new team
-    const newTeamName = Guid.create().toString();
-    await createNewTeam(page, newTeamName);
-    // Create a second team
-    const secondTeamName = Guid.create().toString();
-    await createNewTeam(page, secondTeamName);
-    // Create a new user
-    constants.USER.name = Guid.create().toString();
-    await createNewUser(page, constants.USER);
-    // Add the user to the team
-    // Add the user to the second team
-    // Assert that the error message is visible
-  });
-
   test("should allow to delete an empty team", async ({ page }: { page: Page }) => {
     // Create a new team
     const newTeamName = Guid.create().toString();
@@ -187,6 +171,37 @@ test.describe("Users", () => {
     await page.goto("https://c.hr.dmerej.info/teams");
     await page
       .getByRole("row", { name: newTeamName + " View members Delete" })
+      .getByRole("link", { name: "View members" })
+      .click();
+    await expect(page.getByText(newUser.name)).toBeVisible();
+  });
+
+  test("should not allow user to be in multiple teams", async ({ page }: { page: Page }) => {
+    // Create a new team
+    const firstTeamName = Guid.create().toString();
+    await createNewTeam(page, firstTeamName);
+    // Create a second team
+    const secondTeamName = Guid.create().toString();
+    await createNewTeam(page, secondTeamName);
+    // Create a new user
+    const newUser = constants.USER;
+    newUser.name = Guid.create().toString();
+    await createNewUser(page, newUser);
+    // Add the user to the team
+    await addUserToTeam(page, newUser, firstTeamName);
+    // Add the user to the second team
+    await addUserToTeam(page, newUser, secondTeamName);
+    // Check if the user is in the first team
+    await page.goto("https://c.hr.dmerej.info/teams");
+    await page
+      .getByRole("row", { name: firstTeamName + " View members Delete" })
+      .getByRole("link", { name: "View members" })
+      .click();
+    await expect(page.getByText(newUser.name)).not.toBeVisible();
+    // Check if the user is in the second team
+    await page.goto("https://c.hr.dmerej.info/teams");
+    await page
+      .getByRole("row", { name: secondTeamName + " View members Delete" })
       .getByRole("link", { name: "View members" })
       .click();
     await expect(page.getByText(newUser.name)).toBeVisible();
