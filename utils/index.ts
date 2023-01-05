@@ -64,7 +64,7 @@ export async function createNewTeam(page: Page, teamName: string): Promise<void>
 export async function deleteTeam(page: Page, teamName: string): Promise<void> {
   await page.goto("https://c.hr.dmerej.info/teams");
   await page
-    .getByRole("row", { name: teamName + " View members Delete" })
+    .getByRole("row", { name: `${teamName} View members Delete` })
     .getByRole("link", { name: "Delete" })
     .click();
   await page.getByRole("button", { name: "Proceed" }).click();
@@ -82,7 +82,7 @@ export async function addUserToTeam(
 ): Promise<void> {
   await page.goto("https://c.hr.dmerej.info/employees");
   await page
-    .getByRole("row", { name: userInformation.name + " " + userInformation.email + " no Edit Delete" })
+    .getByRole("row", { name: `${userInformation.name} ${userInformation.email} no Edit Delete` })
     .getByRole("link", { name: "Edit" })
     .click();
   await page.getByRole("link", { name: "Add to team" }).click();
@@ -103,7 +103,7 @@ export async function updateUser(
 ): Promise<void> {
   await page.goto("https://c.hr.dmerej.info/employees");
   await page
-    .getByRole("row", { name: oldUserInformation.name + " " + oldUserInformation.email + " no Edit Delete" })
+    .getByRole("row", { name: `${oldUserInformation.name} ${oldUserInformation.email} no Edit Delete` })
     .getByRole("link", { name: "Edit" })
     .click();
   // Check which information to update

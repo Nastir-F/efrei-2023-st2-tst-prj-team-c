@@ -20,8 +20,8 @@ test.describe("Teams", () => {
     // Create a new team
     const newTeamName = Guid.create().toString();
     await createNewTeam(page, newTeamName);
-    // Check that the team is visible in the table
-    await expect(page.getByRole("row", { name: newTeamName + " View members Delete" })).toBeVisible();
+    // Check that the team is visible in the table 
+    await expect(page.getByRole("row", { name: `${newTeamName} View members Delete` })).toBeVisible();
   });
 
   test("should not allow to create a new team with an existing team name", async ({
@@ -61,7 +61,7 @@ test.describe("Teams", () => {
     // Try to delete the team
     await deleteTeam(page, newTeamName);
     // Assert that the error message is visible
-    await expect(page.getByRole("row", { name: newTeamName + " View members Delete" })).toBeVisible();
+    await expect(page.getByRole("row", { name: `${newTeamName} View members Delete` })).toBeVisible();
   });
 
   test("should allow to delete an empty team", async ({ page }: { page: Page }) => {
@@ -71,7 +71,7 @@ test.describe("Teams", () => {
     // Delete the team
     await deleteTeam(page, newTeamName);
     // Check if the team is deleted
-    await expect(page.getByRole("row", { name: newTeamName + " View members Delete" })).not.toBeVisible();
+    await expect(page.getByRole("row", { name: `${newTeamName} View members Delete` })).not.toBeVisible();
   });
 
   test("should not display a deleted team", async ({ page }: { page: Page }) => {
@@ -86,7 +86,7 @@ test.describe("Teams", () => {
     await createNewUser(page, constants.USER);
     // Try to add the user to the team
     await page
-      .getByRole("row", { name: newUser.name + " " + newUser.email + " no Edit Delete" })
+      .getByRole("row", { name: `${newUser.name} ${newUser.email} no Edit Delete` })
       .getByRole("link", { name: "Edit" })
       .click();
     await page.getByRole("link", { name: "Add to team" }).click();
@@ -103,7 +103,7 @@ test.describe("Users", () => {
     await createNewUser(page, newUser);
     // Check if the user is displayed in the table
     await expect(
-      page.getByRole("row", { name: newUser.name + " " + newUser.email + " no Edit Delete" })
+      page.getByRole("row", { name: `${newUser.name} ${newUser.email} no Edit Delete` })
     ).toBeVisible();
   });
 
@@ -125,7 +125,7 @@ test.describe("Users", () => {
     await createNewUser(page, newUser);
     // Check if the user is displayed in the table
     await expect(
-      page.getByRole("row", { name: newUser.name + " " + newUser.email + " no Edit Delete" })
+      page.getByRole("row", { name: `${newUser.name} ${newUser.email} no Edit Delete` })
     ).toBeVisible();
   });
 
@@ -148,7 +148,7 @@ test.describe("Users", () => {
     userUpdate.name = Guid.create().toString();
     await updateUser(page, newUser, userUpdate, constants.UPDATE_BASIC_INFO);
     // Check if the user basic information is updated
-    await expect(page.getByText(userUpdate.name + " - " + userUpdate.email)).toBeVisible();
+    await expect(page.getByText(`${userUpdate.name} - ${userUpdate.email}`)).toBeVisible();
   });
 
   // ! The test is failing because address 2 is modified
@@ -188,7 +188,7 @@ test.describe("Users", () => {
     // Check if the user is a manager
     await expect(
       page
-        .getByRole("row", { name: newUser.name + " " + newUser.email + " yes Edit Delete" })
+        .getByRole("row", { name: `${newUser.name} ${newUser.email} yes Edit Delete` })
         .getByRole("cell", { name: "yes" })
     ).toBeVisible();
   });
@@ -206,7 +206,7 @@ test.describe("Users", () => {
     // Check if the user is added to the team
     await page.goto("https://c.hr.dmerej.info/teams");
     await page
-      .getByRole("row", { name: newTeamName + " View members Delete" })
+      .getByRole("row", { name: `${newTeamName} View members Delete` })
       .getByRole("link", { name: "View members" })
       .click();
     await expect(page.getByText(newUser.name)).toBeVisible();
@@ -230,14 +230,14 @@ test.describe("Users", () => {
     // Check if the user is in the first team
     await page.goto("https://c.hr.dmerej.info/teams");
     await page
-      .getByRole("row", { name: firstTeamName + " View members Delete" })
+      .getByRole("row", { name: `${firstTeamName} View members Delete` })
       .getByRole("link", { name: "View members" })
       .click();
     await expect(page.getByText(newUser.name)).not.toBeVisible();
     // Check if the user is in the second team
     await page.goto("https://c.hr.dmerej.info/teams");
     await page
-      .getByRole("row", { name: secondTeamName + " View members Delete" })
+      .getByRole("row", { name: `${secondTeamName} View members Delete` })
       .getByRole("link", { name: "View members" })
       .click();
     await expect(page.getByText(newUser.name)).toBeVisible();
