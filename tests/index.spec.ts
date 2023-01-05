@@ -1,5 +1,12 @@
 import { test, expect, type Page } from "@playwright/test";
-import { createNewTeam, createNewUser, deleteTeam, updateUser, addUserToTeam } from "../utils/index";
+import {
+  createNewTeam,
+  createNewUser,
+  deleteTeam,
+  updateUser,
+  addUserToTeam,
+  deleteUser,
+} from "../utils/index";
 import * as constants from "../utils/constants";
 import { Guid } from "guid-typescript";
 
@@ -100,7 +107,11 @@ test.describe("Users", () => {
     ).toBeVisible();
   });
 
-  test("should not be able to create an user with spaces in name, address, city, job title", async ({ page }: { page: Page }) => {
+  test("should not be able to create an user with spaces in name, address, city, job title", async ({
+    page,
+  }: {
+    page: Page;
+  }) => {
     // Create a new user
     await createNewUser(page, constants.USER_WITH_SPACE_IN_FIELD);
     // Check if there is an error message
@@ -116,6 +127,15 @@ test.describe("Users", () => {
     await expect(
       page.getByRole("row", { name: newUser.name + " " + newUser.email + " no Edit Delete" })
     ).toBeVisible();
+  });
+
+  test("should not allow to create a new user with a long zip code", async ({ page }: { page: Page }) => {
+    // Create a new user
+    const newUser = constants.USER_WITH_LONG_ZIP_CODE;
+    newUser.name = Guid.create().toString();
+    await createNewUser(page, newUser);
+    // Assert that the error message is visible
+    await expect(page.getByText(constants.INTERNAL_SERVER_ERROR)).toBeVisible();
   });
 
   test("should update user basic information", async ({ page }: { page: Page }) => {
@@ -223,14 +243,19 @@ test.describe("Users", () => {
     await expect(page.getByText(newUser.name)).toBeVisible();
   });
 
-  test("should not allow to create a new user with a long zip code", async ({ page }: { page: Page }) => {
+  test("should be able to delete a user", async ({ page }: { page: Page }) => {
     // Create a new user
-    const newUser = constants.USER_WITH_LONG_ZIP_CODE;
+    const newUser = constants.USER;
     newUser.name = Guid.create().toString();
     await createNewUser(page, newUser);
-    // Assert that the error message is visible
-    await expect(page.getByText(constants.INTERNAL_SERVER_ERROR)).toBeVisible();
+    // Delete the user
+    await deleteUser(page, newUser);
+    await expect(
+      page.getByRole("row", { name: `${newUser.name} ${newUser.email} no Edit Delete` })
+    ).not.toBeVisible();
   });
+
+  test("should display user information when we want to delete it", async ({ page }: { page: Page }) => {});
 });
 
 test.describe("Security", () => {

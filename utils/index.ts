@@ -31,6 +31,20 @@ export async function createNewUser(page: Page, userInformation: UserInformation
 }
 
 /**
+ * Delete a user
+ * @param page
+ * @param userInformation
+ */
+export async function deleteUser(page: Page, userInformation: UserInformation): Promise<void> {
+  await page.goto("https://c.hr.dmerej.info/employees");
+  await page
+    .getByRole("row", { name: `${userInformation.name} ${userInformation.email} no Edit Delete` })
+    .getByRole("link", { name: "Delete" })
+    .click();
+  await page.getByRole("button", { name: "Proceed" }).click();
+}
+
+/**
  *
  * Create a new team
  * @param page
