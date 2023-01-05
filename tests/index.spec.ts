@@ -32,7 +32,7 @@ test.describe("Teams", () => {
   });
 
   // ! There is an error 500 when we try to create a team with an empty name
-  test("should not be able to create a team with an empty name", async ({ page }: { page: Page }) => {
+  test("should not be able to create a team with spaces in name", async ({ page }: { page: Page }) => {
     // Create a new team
     const newTeamName = "  ";
     await createNewTeam(page, newTeamName);
@@ -98,6 +98,13 @@ test.describe("Users", () => {
     await expect(
       page.getByRole("row", { name: newUser.name + " " + newUser.email + " no Edit Delete" })
     ).toBeVisible();
+  });
+
+  test("should not be able to create an user with spaces in name, address, city, job title", async ({ page }: { page: Page }) => {
+    // Create a new user
+    await createNewUser(page, constants.USER_WITH_SPACE_IN_FIELD);
+    // Check if there is an error message
+    await expect(page.getByText(constants.REQUIRED_FIELD_ERROR)).toHaveCount(4);
   });
 
   test("should create a new user with html tag", async ({ page }: { page: Page }) => {

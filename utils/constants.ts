@@ -42,6 +42,18 @@ export const USER_WITH_HTML_TAG = {
   jobTitle: "<b>Software Engineer</b>",
 };
 
+export const USER_WITH_SPACE_IN_FIELD = {
+  name: "   ",
+  email: "john.doe@email.com",
+  address: {
+    street: "   ",
+    city: "   ",
+    zipCode: "12345",
+  },
+  hiringDate: "2021-01-01",
+  jobTitle: "   ",
+};
+
 export const SQL_INJECTION = `'; DROP TABLE teams; --`;
 export const DOM_XSS = `</script><script>alert("XSS")</script>`;
 
