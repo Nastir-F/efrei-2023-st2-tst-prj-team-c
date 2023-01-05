@@ -114,3 +114,24 @@ run all the tests only with the Chrome driver.
 
 * What do you think of the various testing strategies we used during the 4 sequences?
 * Can you list their pros and cons?
+
+## Commands to use in the project
+To install depedencies:
+```
+npm i
+```
+
+To install playwright:
+```
+npx playwright install
+```
+
+To generate code for testing the website:
+```
+npx playwright codegen c.hr.dmerej.info/
+```
+
+To start all the tests:
+```
+npx playwright test
+```
