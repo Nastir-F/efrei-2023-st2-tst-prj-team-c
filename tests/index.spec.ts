@@ -1,68 +1,20 @@
 import { test, expect, type Page } from "@playwright/test";
-import { createNewTeam, createNewUser } from "../utils";
+import { createNewTeam, createNewUser, deleteTeam, updateUser } from "../utils/index";
+import * as constants from "../utils/constants";
 import { Guid } from "guid-typescript";
 
-// TODO put data in a separate file
-const SQL_INJECTION = `'; DROP TABLE teams; --`;
-const DOM_XSS = `</script><script>alert("XSS")</script>`;
-
-const TEAM_ALREADY_EXIST_ERROR = "a team with the same name already exists";
-const INTERNAL_SERVER_ERROR = "Server Error (500)";
-
-const USER = {
-  name: "",
-  email: "john.doe@email.com",
-  address: {
-    street: "123 Main Street",
-    city: "New York",
-    zipCode: "12345",
-  },
-  hiringDate: "2021-01-01",
-  jobTitle: "Software Engineer",
-};
-const USER_WITH_LONG_ZIP_CODE = {
-  ...USER,
-  address: {
-    ...USER.address,
-    zipCode: "757575757575757757575757575757575757577575757575757575757575757757575757575",
-  },
-};
-
-const USER_UPDATE = {
-  name: "",
-  email: "jean.dupont@email.com",
-  address: {
-    street: "1 rue de la Paix",
-    city: "Paris",
-    zipCode: "75001",
-  },
-  hiringDate: "2023-07-07",
-  jobTitle: "CEO",
-};
-
-const USER_WITH_HTML_TAG = {
-  name: "",
-  email: "john.doe@email.com",
-  address: {
-    street: "<b>123 Main Street</b>",
-    city: "<b>New York</b>",
-    zipCode: "12345",
-  },
-  hiringDate: "2021-01-01",
-  jobTitle: "<b>Software Engineer</b>",
-};
-
-test.afterAll(async ({ page }) => {
-  await page.goto("https://c.hr.dmerej.info/reset_db");
-  await page.getByRole("button", { name: "Proceed" }).click();
-});
+// test.afterAll(async ({ page }) => {
+//   await page.goto("https://c.hr.dmerej.info/reset_db");
+//   await page.getByRole("button", { name: "Proceed" }).click();
+// });
 
 test.describe("Teams", () => {
   test("should allow to create a new team", async ({ page }: { page: Page }) => {
     // Create a new team
     const newTeamName = Guid.create().toString();
     await createNewTeam(page, newTeamName);
-    await expect(page.locator("table > tbody > tr > td")).toContainText([newTeamName]);
+    // Check that the team is visible in the table
+    await expect(page.getByRole("row", { name: newTeamName + " View members Delete" })).toBeVisible();
   });
 
   test("should not allow to create a new team with an existing team name", async ({
@@ -76,8 +28,7 @@ test.describe("Teams", () => {
     // Try to create a new team with the same name
     await createNewTeam(page, newTeamName);
     // Assert that the error message is visible
-    const locator = page.getByText(TEAM_ALREADY_EXIST_ERROR);
-    await expect(locator).toBeVisible();
+    await expect(page.getByText(constants.TEAM_ALREADY_EXIST_ERROR)).toBeVisible();
   });
 
   // TODO
@@ -86,9 +37,17 @@ test.describe("Teams", () => {
     const newTeamName = Guid.create().toString();
     await createNewTeam(page, newTeamName);
     // Create a new user
-    await createNewUser(page, USER);
-
+    const newUser = constants.USER;
+    newUser.name = Guid.create().toString();
+    await createNewUser(page, newUser);
     // Add the user to the team
+    await page
+      .getByRole("row", { name: newUser.name + " " + newUser.email + " no Edit Delete" })
+      .getByRole("link", { name: "Edit" })
+      .click();
+    await page.getByRole("link", { name: "Add to team" }).click();
+    await page.getByRole("combobox", { name: "Team" });
+    await page.getByRole("button", { name: "Add" }).click();
     // Try to delete the team
 
     // Assert that the error message is visible
@@ -103,8 +62,8 @@ test.describe("Teams", () => {
     const secondTeamName = Guid.create().toString();
     await createNewTeam(page, secondTeamName);
     // Create a new user
-    USER.name = Guid.create().toString();
-    await createNewUser(page, USER);
+    constants.USER.name = Guid.create().toString();
+    await createNewUser(page, constants.USER);
     // Add the user to the team
     // Add the user to the second team
     // Assert that the error message is visible
@@ -115,13 +74,9 @@ test.describe("Teams", () => {
     const newTeamName = Guid.create().toString();
     await createNewTeam(page, newTeamName);
     // Delete the team
-    await page
-      .getByRole("row", { name: newTeamName + " View members Delete" })
-      .getByRole("link", { name: "Delete" })
-      .click();
-    await page.click("text=Proceed");
+    await deleteTeam(page, newTeamName);
     // Check if the team is deleted
-    await expect(page.locator("table > tbody > tr > td")).not.toContainText([newTeamName]);
+    await expect(page.getByRole("row", { name: newTeamName + " View members Delete" })).not.toBeVisible();
   });
 
   test("should not display a deleted team", async ({ page }: { page: Page }) => {
@@ -129,19 +84,18 @@ test.describe("Teams", () => {
     const newTeamName = Guid.create().toString();
     await createNewTeam(page, newTeamName);
     // Delete the team
-    await page.click(`text=${newTeamName}`);
-    await page
-      .getByRole("row", { name: newTeamName + " View members Delete" })
-      .getByRole("link", { name: "Delete" })
-      .click();
-    await page.click("text=Proceed");
+    await deleteTeam(page, newTeamName);
     // Create a new user
-    USER.name = Guid.create().toString();
-    await createNewUser(page, USER);
+    const newUser = constants.USER;
+    newUser.name = Guid.create().toString();
+    await createNewUser(page, constants.USER);
     // Try to add the user to the team
-    await page.click("text=Edit");
+    await page
+      .getByRole("row", { name: newUser.name + " " + newUser.email + " no Edit Delete" })
+      .getByRole("link", { name: "Edit" })
+      .click();
     await page.click("text=Add to team");
-
+    // Check if the team is not displayed in the select
     await expect(page.locator("select > option")).not.toContainText([newTeamName]);
   });
 });
@@ -149,38 +103,35 @@ test.describe("Teams", () => {
 test.describe("Users", () => {
   test("should create a new user", async ({ page }: { page: Page }) => {
     // Create a new user
-    const newUser = USER;
+    const newUser = constants.USER;
     newUser.name = Guid.create().toString();
     await createNewUser(page, newUser);
     // Check if the user is displayed in the table
-    await expect(page.locator("table > tbody > tr > td")).toContainText([USER.name]);
+    await expect(
+      page.getByRole("row", { name: newUser.name + " " + newUser.email + " no Edit Delete" })
+    ).toBeVisible();
   });
 
   test("should create a new user with html tag", async ({ page }: { page: Page }) => {
     // Create a new user
-    const newUser = USER_WITH_HTML_TAG;
+    const newUser = constants.USER_WITH_HTML_TAG;
     newUser.name = "<b>" + Guid.create().toString() + "</b>";
     await createNewUser(page, newUser);
     // Check if the user is displayed in the table
-    await expect(page.locator("table > tbody > tr > td")).toContainText([USER_WITH_HTML_TAG.name]);
+    await expect(
+      page.getByRole("row", { name: newUser.name + " " + newUser.email + " no Edit Delete" })
+    ).toBeVisible();
   });
 
   test("should update user basic information", async ({ page }: { page: Page }) => {
     // Create a new user
-    const newUser = USER;
+    const newUser = constants.USER;
     newUser.name = Guid.create().toString();
     await createNewUser(page, newUser);
     // Update the basic information
-    await page
-      .getByRole("row", { name: newUser.name + " " + newUser.email + " no Edit Delete" })
-      .getByRole("link", { name: "Edit" })
-      .click();
-    await page.click("text=Update basic info");
-    const userUpdate = USER_UPDATE;
+    const userUpdate = constants.USER_UPDATE;
     userUpdate.name = Guid.create().toString();
-    await page.getByPlaceholder("Name").fill(userUpdate.name);
-    await page.getByPlaceholder("Email").fill(userUpdate.email);
-    await page.click("text=Update");
+    await updateUser(page, newUser, userUpdate, constants.UPDATE_BASIC_INFO);
     // Check if the user basic information is updated
     await expect(page.getByText(userUpdate.name + " - " + userUpdate.email)).toBeVisible();
   });
@@ -188,93 +139,77 @@ test.describe("Users", () => {
   // ! The test is failing because address 2 is modified
   test("should update user address", async ({ page }: { page: Page }) => {
     // Create a new user
-    const newUser = USER;
+    const newUser = constants.USER;
     newUser.name = Guid.create().toString();
     await createNewUser(page, newUser);
     // Update the address
-    await page
-      .getByRole("row", { name: newUser.name + " " + newUser.email + " no Edit Delete" })
-      .getByRole("link", { name: "Edit" })
-      .click();
-    await page.click("text=Update address");
-    await page.locator("#id_address_line1").fill(USER_UPDATE.address.street);
-    await page.locator("#id_address_line2").fill("");
-    await page.getByPlaceholder("City").fill(USER_UPDATE.address.city);
-    await page.getByPlaceholder("Zip code").fill(USER_UPDATE.address.zipCode);
-    await page.click("text=Update");
+    await updateUser(page, newUser, constants.USER_UPDATE, constants.UPDATE_ADDRESS);
     // Check if the user address is updated
     await page.click("text=Update address");
-    await expect(page.locator("#id_address_line1")).toHaveValue(USER_UPDATE.address.street);
+    await expect(page.locator("#id_address_line1")).toHaveValue(constants.USER_UPDATE.address.street);
     await expect(page.locator("#id_address_line2")).toHaveValue("");
-    await expect(page.getByPlaceholder("City")).toHaveValue(USER_UPDATE.address.city);
-    await expect(page.getByPlaceholder("Zip code")).toHaveValue(USER_UPDATE.address.zipCode);
+    await expect(page.getByPlaceholder("City")).toHaveValue(constants.USER_UPDATE.address.city);
+    await expect(page.getByPlaceholder("Zip code")).toHaveValue(constants.USER_UPDATE.address.zipCode);
   });
 
   test("should update user contract", async ({ page }: { page: Page }) => {
     // Create a new user
-    const newUser = USER;
+    const newUser = constants.USER;
     newUser.name = Guid.create().toString();
     await createNewUser(page, newUser);
     // Update the contract
-    await page
-      .getByRole("row", { name: newUser.name + " " + newUser.email + " no Edit Delete" })
-      .getByRole("link", { name: "Edit" })
-      .click();
-    await page.click("text=Update contract");
-    await page.getByPlaceholder("Job title").fill(USER_UPDATE.jobTitle);
-    await page.click("text=Update");
+    await updateUser(page, newUser, constants.USER_UPDATE, constants.UPDATE_CONTRACT);
     // Check if the user contract is updated
-    await expect(page.getByText(USER_UPDATE.jobTitle)).toBeVisible();
+    await expect(page.getByText(constants.USER_UPDATE.jobTitle)).toBeVisible();
   });
 
   test("should allow to promote a user as a manager", async ({ page }: { page: Page }) => {
     // Create a new user
-    const newUser = USER;
+    const newUser = constants.USER;
     newUser.name = Guid.create().toString();
     await createNewUser(page, newUser);
     // Promote the user as a manager
-    await page
-      .getByRole("row", { name: newUser.name + " " + newUser.email + " no Edit Delete" })
-      .getByRole("link", { name: "Edit" })
-      .click();
-    await page.click("text=Promote as manager");
-    await page.click("text=Proceed");
-    // Check if the user is displayed in the managers table
-    await expect(page.locator("table > tbody > tr > td > strong")).toContainText("yes");
+    await updateUser(page, newUser, constants.USER_UPDATE, constants.UPDATE_MANAGER);
+    // Check if the user is a manager
+    await expect(
+      page
+        .getByRole("row", { name: newUser.name + " " + newUser.email + " yes Edit Delete" })
+        .getByRole("cell", { name: "yes" })
+    ).toBeVisible();
   });
 
   test("should not allow to create a new user with a long zip code", async ({ page }: { page: Page }) => {
     // Create a new user
-    const newUser = USER_WITH_LONG_ZIP_CODE;
+    const newUser = constants.USER_WITH_LONG_ZIP_CODE;
     newUser.name = Guid.create().toString();
     await createNewUser(page, newUser);
     // Assert that the error message is visible
-    await expect(page.getByText(INTERNAL_SERVER_ERROR)).toBeVisible();
+    await expect(page.getByText(constants.INTERNAL_SERVER_ERROR)).toBeVisible();
   });
 });
 
 test.describe("Security", () => {
   test("should not allow SQL injection", async ({ page }: { page: Page }) => {
     // Create a new team
-    await createNewTeam(page, SQL_INJECTION);
+    await createNewTeam(page, constants.SQL_INJECTION);
 
     // Try to create a new team with the same name
-    await createNewTeam(page, SQL_INJECTION);
+    await createNewTeam(page, constants.SQL_INJECTION);
 
     // Assert that the error message is visible
-    const locator = page.getByText(TEAM_ALREADY_EXIST_ERROR);
+    const locator = page.getByText(constants.TEAM_ALREADY_EXIST_ERROR);
     await expect(locator).toBeVisible();
   });
 
   test("should not allow DOM XSS", async ({ page }: { page: Page }) => {
     // Create a new team
-    await createNewTeam(page, DOM_XSS);
+    await createNewTeam(page, constants.DOM_XSS);
 
     // Try to create a new team with the same name
-    await createNewTeam(page, DOM_XSS);
+    await createNewTeam(page, constants.DOM_XSS);
 
     // Assert that the error message is visible
-    const locator = page.getByText(TEAM_ALREADY_EXIST_ERROR);
+    const locator = page.getByText(constants.TEAM_ALREADY_EXIST_ERROR);
     await expect(locator).toBeVisible();
   });
 });
