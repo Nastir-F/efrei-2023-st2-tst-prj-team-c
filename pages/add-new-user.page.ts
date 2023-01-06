@@ -43,10 +43,11 @@ export class AddNewUserPage {
     await this.page.locator("#id_job_title").fill(jobTitle);
   }
 
-  async fillForm(name: string, email: string, address: string, city: string, zipCode: string, hiringDate: string, jobTitle: string) {
+  async fillForm(name: string, email: string, address_line1: string, address_line2: string, city: string, zipCode: string, hiringDate: string, jobTitle: string) {
     await this.fillName(name);
     await this.fillEmail(email);
-    await this.fillAddress1(address);
+    await this.fillAddress1(address_line1);
+    await this.fillAddress2(address_line2);
     await this.fillCity(city);
     await this.fillZipCode(zipCode);
     await this.fillHiringDate(hiringDate);

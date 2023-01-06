@@ -8,11 +8,10 @@ import { AddUserToTeamPage } from "../pages/add-user-to-team.page";
 type UserInformation = {
   name: string;
   email: string;
-  address: {
-    street: string;
-    city: string;
-    zipCode: string;
-  };
+  address_line1: string;
+  address_line2: string;
+  city: string;
+  zipCode: string;
   hiringDate: string;
   jobTitle: string;
 };
@@ -28,9 +27,10 @@ export async function createNewUser(page: Page, userInformation: UserInformation
   await addNewUserPage.fillForm(
     userInformation.name,
     userInformation.email,
-    userInformation.address.street,
-    userInformation.address.city,
-    userInformation.address.zipCode,
+    userInformation.address_line1,
+    userInformation.address_line2,
+    userInformation.city,
+    userInformation.zipCode,
     userInformation.hiringDate,
     userInformation.jobTitle
   );
@@ -93,10 +93,10 @@ export async function addUserToTeam(
     .getByRole("row", { name: `${userInformation.name} ${userInformation.email} no Edit Delete` })
     .getByRole("link", { name: "Edit" })
     .click();
-    const addUserToTeamPage = new AddUserToTeamPage(page);
-    await addUserToTeamPage.goto();
-    await addUserToTeamPage.fillTeamSelect(teamName);
-    await addUserToTeamPage.clickAdd();
+  const addUserToTeamPage = new AddUserToTeamPage(page);
+  await addUserToTeamPage.goto();
+  await addUserToTeamPage.fillTeamSelect(teamName);
+  await addUserToTeamPage.clickAdd();
 }
 
 /**
@@ -121,9 +121,10 @@ export async function updateUser(
   await updateUserPage.fillForm(
     updateUserInformation.name,
     updateUserInformation.email,
-    updateUserInformation.address.street,
-    updateUserInformation.address.city,
-    updateUserInformation.address.zipCode,
+    updateUserInformation.address_line1,
+    updateUserInformation.address_line2,
+    updateUserInformation.city,
+    updateUserInformation.zipCode,
     updateUserInformation.jobTitle
   );
   if (

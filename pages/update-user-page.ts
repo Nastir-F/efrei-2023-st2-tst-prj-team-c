@@ -46,12 +46,13 @@ export class UpdateUserPage {
     await this.page.getByRole("button", { name: "Proceed" }).click();
   }
 
-  async fillForm(name: string, email: string, address: string, city: string, zipCode: string, jobTitle: string) {
+  async fillForm(name: string, email: string, address_line1: string, address_line2: string, city: string, zipCode: string, jobTitle: string) {
     if (this.updateType === UPDATE_BASIC_INFO) {
       await this.fillName(name);
       await this.fillEmail(email);
     } else if (this.updateType === UPDATE_ADDRESS) {
-      await this.fillAddress1(address);
+      await this.fillAddress1(address_line1);
+      await this.fillAddress2(address_line2);
       await this.fillCity(city);
       await this.fillZipCode(zipCode);
     } else if (this.updateType === UPDATE_CONTRACT) {

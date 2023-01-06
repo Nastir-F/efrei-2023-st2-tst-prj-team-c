@@ -80,10 +80,10 @@ test.describe("Users update", () => {
     await updateUser(page, newUser, constants.USER_UPDATE, constants.UPDATE_ADDRESS);
     // Assert that the user address is updated
     await page.getByRole("link", { name: "Update address" }).click();
-    await expect(page.locator("#id_address_line1")).toHaveValue(constants.USER_UPDATE.address.street);
-    await expect(page.locator("#id_address_line2")).toHaveValue("");
-    await expect(page.getByPlaceholder("City")).toHaveValue(constants.USER_UPDATE.address.city);
-    await expect(page.getByPlaceholder("Zip code")).toHaveValue(constants.USER_UPDATE.address.zipCode);
+    await expect(page.locator("#id_address_line1")).toHaveValue(constants.USER_UPDATE.address_line1);
+    await expect(page.locator("#id_address_line2")).toHaveValue(constants.USER_UPDATE.address_line2);
+    await expect(page.getByPlaceholder("City")).toHaveValue(constants.USER_UPDATE.city);
+    await expect(page.getByPlaceholder("Zip code")).toHaveValue(constants.USER_UPDATE.zipCode);
   });
 
   test("should update user contract", async ({ page }: { page: Page }) => {
