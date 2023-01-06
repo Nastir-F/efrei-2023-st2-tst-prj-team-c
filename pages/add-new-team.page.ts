@@ -1,4 +1,5 @@
 import { Page } from '@playwright/test';
+import * as constants from '../utils/constants';
 
 export class AddNewTeamPage {
   private page: Page;
@@ -8,7 +9,7 @@ export class AddNewTeamPage {
   }
 
   async goto() {
-    await this.page.goto('https://c.hr.dmerej.info/add_team');
+    await this.page.goto(`${constants.BASE_URL}/add_team`);
   }
 
   async fillName(name: string) {

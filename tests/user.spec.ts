@@ -123,7 +123,7 @@ test.describe("Users update", () => {
     // Add the user to the team
     await addUserToTeam(page, newUser, newTeamName);
     // Assert that the user is in the team
-    await page.goto("https://c.hr.dmerej.info/teams");
+    await page.goto(`${constants.BASE_URL}/teams`);
     await page
       .getByRole("row", { name: `${newTeamName} View members Delete` })
       .getByRole("link", { name: "View members" })
@@ -147,14 +147,14 @@ test.describe("Users update", () => {
     // Add the user to the second team
     await addUserToTeam(page, newUser, secondTeamName);
     // Assert that the user isn't in the first team
-    await page.goto("https://c.hr.dmerej.info/teams");
+    await page.goto(`${constants.BASE_URL}/teams`);
     await page
       .getByRole("row", { name: `${firstTeamName} View members Delete` })
       .getByRole("link", { name: "View members" })
       .click();
     await expect(page.getByText(newUser.name)).not.toBeVisible();
     // Assert that the user is in the second team
-    await page.goto("https://c.hr.dmerej.info/teams");
+    await page.goto(`${constants.BASE_URL}/teams`);
     await page
       .getByRole("row", { name: `${secondTeamName} View members Delete` })
       .getByRole("link", { name: "View members" })

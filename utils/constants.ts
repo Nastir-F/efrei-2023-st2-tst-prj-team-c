@@ -60,3 +60,5 @@ export const UPDATE_BASIC_INFO = "Update basic info";
 export const UPDATE_ADDRESS = "Update address";
 export const UPDATE_CONTRACT = "Update contract";
 export const UPDATE_MANAGER = "Promote as manager";
+
+export const BASE_URL = "https://c.hr.dmerej.info";

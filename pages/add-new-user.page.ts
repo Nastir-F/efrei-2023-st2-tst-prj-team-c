@@ -1,4 +1,5 @@
 import { Page } from '@playwright/test';
+import * as constants from '../utils/constants';
 
 export class AddNewUserPage {
   private page: Page;
@@ -8,7 +9,7 @@ export class AddNewUserPage {
   }
 
   async goto() {
-    await this.page.goto('https://c.hr.dmerej.info/add_employee');
+    await this.page.goto(`${constants.BASE_URL}/add_employee`);
   }
 
   async fillName(name: string) {
