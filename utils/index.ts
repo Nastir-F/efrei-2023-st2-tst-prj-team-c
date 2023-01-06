@@ -1,5 +1,9 @@
 import { type Page } from "@playwright/test";
 import * as constants from "../utils/constants";
+import { AddNewUserPage } from "../pages/add-new-user.page";
+import { AddNewTeamPage } from "../pages/add-new-team.page";
+import { UpdateUserPage } from "../pages/update-user-page";
+import { AddUserToTeamPage } from "../pages/add-user-to-team.page";
 
 type UserInformation = {
   name: string;
@@ -19,15 +23,18 @@ type UserInformation = {
  * @param userInformation
  */
 export async function createNewUser(page: Page, userInformation: UserInformation): Promise<void> {
-  await page.goto("https://c.hr.dmerej.info/add_employee");
-  await page.getByPlaceholder("Name").fill(userInformation.name);
-  await page.getByPlaceholder("Email").fill(userInformation.email);
-  await page.locator("#id_address_line1").fill(userInformation.address.street);
-  await page.getByPlaceholder("City").fill(userInformation.address.city);
-  await page.getByPlaceholder("Zip code").fill(userInformation.address.zipCode);
-  await page.getByPlaceholder("Hiring date").fill(userInformation.hiringDate);
-  await page.getByPlaceholder("Job title").fill(userInformation.jobTitle);
-  await page.getByRole("button", { name: "Add" }).press("Enter");
+  const addNewUserPage = new AddNewUserPage(page);
+  await addNewUserPage.goto();
+  await addNewUserPage.fillForm(
+    userInformation.name,
+    userInformation.email,
+    userInformation.address.street,
+    userInformation.address.city,
+    userInformation.address.zipCode,
+    userInformation.hiringDate,
+    userInformation.jobTitle
+  );
+  await addNewUserPage.clickAdd();
 }
 
 /**
@@ -51,9 +58,10 @@ export async function deleteUser(page: Page, userInformation: UserInformation): 
  * @param teamName
  */
 export async function createNewTeam(page: Page, teamName: string): Promise<void> {
-  await page.goto("https://c.hr.dmerej.info/add_team");
-  await page.getByPlaceholder("Name").fill(teamName);
-  await page.getByRole("button", { name: "Add" }).click();
+  const addNewTeamPage = new AddNewTeamPage(page);
+  await addNewTeamPage.goto();
+  await addNewTeamPage.fillName(teamName);
+  await addNewTeamPage.clickAdd();
 }
 
 /**
@@ -85,9 +93,10 @@ export async function addUserToTeam(
     .getByRole("row", { name: `${userInformation.name} ${userInformation.email} no Edit Delete` })
     .getByRole("link", { name: "Edit" })
     .click();
-  await page.getByRole("link", { name: "Add to team" }).click();
-  await page.locator("#id_team").selectOption({ label: teamName + " team" });
-  await page.getByRole("button", { name: "Add" }).click();
+    const addUserToTeamPage = new AddUserToTeamPage(page);
+    await addUserToTeamPage.goto();
+    await addUserToTeamPage.fillTeamSelect(teamName);
+    await addUserToTeamPage.clickAdd();
 }
 
 /**
@@ -99,7 +108,7 @@ export async function updateUser(
   page: Page,
   oldUserInformation: UserInformation,
   updateUserInformation: UserInformation,
-  infoToUpdate: string
+  updateType: string
 ): Promise<void> {
   await page.goto("https://c.hr.dmerej.info/employees");
   await page
@@ -107,24 +116,21 @@ export async function updateUser(
     .getByRole("link", { name: "Edit" })
     .click();
   // Check which information to update
-  if (infoToUpdate === constants.UPDATE_BASIC_INFO) {
-    await page.getByRole("link", { name: constants.UPDATE_BASIC_INFO }).click();
-    await page.getByPlaceholder("Name").fill(updateUserInformation.name);
-    await page.getByPlaceholder("Email").fill(updateUserInformation.email);
-    await page.click("text=Update");
-  } else if (infoToUpdate === constants.UPDATE_ADDRESS) {
-    await page.getByRole("link", { name: constants.UPDATE_ADDRESS }).click();
-    await page.locator("#id_address_line1").fill(constants.USER_UPDATE.address.street);
-    await page.locator("#id_address_line2").fill("");
-    await page.getByPlaceholder("City").fill(constants.USER_UPDATE.address.city);
-    await page.getByPlaceholder("Zip code").fill(constants.USER_UPDATE.address.zipCode);
-    await page.click("text=Update");
-  } else if (infoToUpdate === constants.UPDATE_CONTRACT) {
-    await page.getByRole("link", { name: constants.UPDATE_CONTRACT }).click();
-    await page.getByPlaceholder("Job title").fill(constants.USER_UPDATE.jobTitle);
-    await page.click("text=Update");
-  } else if (infoToUpdate === constants.UPDATE_MANAGER) {
-    await page.getByRole("link", { name: constants.UPDATE_MANAGER }).click();
-    await page.click("text=Proceed");
+  const updateUserPage = new UpdateUserPage(page, updateType);
+  await updateUserPage.gotoUpdateType();
+  await updateUserPage.fillForm(
+    updateUserInformation.name,
+    updateUserInformation.email,
+    updateUserInformation.address.street,
+    updateUserInformation.address.city,
+    updateUserInformation.address.zipCode,
+    updateUserInformation.jobTitle
+  );
+  if (
+    updateType === constants.UPDATE_BASIC_INFO ||
+    updateType === constants.UPDATE_CONTRACT ||
+    updateType === constants.UPDATE_ADDRESS
+  ) {
+    await updateUserPage.clickUpdate();
   }
 }
