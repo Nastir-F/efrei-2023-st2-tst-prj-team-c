@@ -1,13 +1,17 @@
 import { type Page } from "@playwright/test";
+import * as constants from "../utils/constants";
+import { AddNewUserPage } from "../pages/add-new-user.page";
+import { AddNewTeamPage } from "../pages/add-new-team.page";
+import { UpdateUserPage } from "../pages/update-user-page";
+import { AddUserToTeamPage } from "../pages/add-user-to-team.page";
 
 type UserInformation = {
   name: string;
   email: string;
-  address: {
-    street: string;
-    city: string;
-    zipCode: string;
-  };
+  address_line1: string;
+  address_line2: string;
+  city: string;
+  zipCode: string;
   hiringDate: string;
   jobTitle: string;
 };
@@ -17,28 +21,34 @@ type UserInformation = {
  * @param page
  * @param userInformation
  */
-export async function createNewUser(
-  page: Page,
-  userInformation: UserInformation
-): Promise<void> {
-  await page.goto("https://c.hr.dmerej.info/add_employee");
-  await page.getByPlaceholder("Name").click();
-  await page.getByPlaceholder("Name").fill(userInformation.name);
-  await page.getByPlaceholder("Name").press("Tab");
-  await page.getByPlaceholder("Email").fill(userInformation.email);
-  await page.getByPlaceholder("Email").press("Tab");
-  await page.locator("#id_address_line1").fill(userInformation.address.street);
-  await page.locator("#id_address_line1").press("Tab");
-  await page.locator("#id_address_line2").press("Tab");
-  await page.getByPlaceholder("City").fill(userInformation.address.city);
-  await page.getByPlaceholder("City").press("Tab");
-  await page.getByPlaceholder("Zip code").fill(userInformation.address.zipCode);
-  await page.getByPlaceholder("Zip code").press("Tab");
-  await page.getByPlaceholder("Hiring date").fill(userInformation.hiringDate);
-  await page.getByPlaceholder("Hiring date").press("Tab");
-  await page.getByPlaceholder("Job title").fill(userInformation.jobTitle);
-  await page.getByPlaceholder("Job title").press("Tab");
-  await page.getByRole("button", { name: "Add" }).press("Enter");
+export async function createNewUser(page: Page, userInformation: UserInformation): Promise<void> {
+  const addNewUserPage = new AddNewUserPage(page);
+  await addNewUserPage.goto();
+  await addNewUserPage.fillForm(
+    userInformation.name,
+    userInformation.email,
+    userInformation.address_line1,
+    userInformation.address_line2,
+    userInformation.city,
+    userInformation.zipCode,
+    userInformation.hiringDate,
+    userInformation.jobTitle
+  );
+  await addNewUserPage.clickAdd();
+}
+
+/**
+ * Delete a user
+ * @param page
+ * @param userInformation
+ */
+export async function deleteUser(page: Page, userInformation: UserInformation): Promise<void> {
+  await page.goto("https://c.hr.dmerej.info/employees");
+  await page
+    .getByRole("row", { name: `${userInformation.name} ${userInformation.email} no Edit Delete` })
+    .getByRole("link", { name: "Delete" })
+    .click();
+  await page.getByRole("button", { name: "Proceed" }).click();
 }
 
 /**
@@ -47,14 +57,11 @@ export async function createNewUser(
  * @param page
  * @param teamName
  */
-export async function createNewTeam(
-  page: Page,
-  teamName: string
-): Promise<void> {
-  await page.goto("https://c.hr.dmerej.info/add_team");
-  await page.getByPlaceholder("Name").click();
-  await page.getByPlaceholder("Name").fill(teamName);
-  await page.getByRole("button", { name: "Add" }).click();
+export async function createNewTeam(page: Page, teamName: string): Promise<void> {
+  const addNewTeamPage = new AddNewTeamPage(page);
+  await addNewTeamPage.goto();
+  await addNewTeamPage.fillName(teamName);
+  await addNewTeamPage.clickAdd();
 }
 
 /**
@@ -62,12 +69,13 @@ export async function createNewTeam(
  * @param page
  * @param teamName
  */
-export async function deleteTeam(): Promise<void> {
-  // TO BE IMPLEMENTED
-  // Go to team page list
-  // Select the first team
-  // Edit the team
-  // Delete the team
+export async function deleteTeam(page: Page, teamName: string): Promise<void> {
+  await page.goto("https://c.hr.dmerej.info/teams");
+  await page
+    .getByRole("row", { name: `${teamName} View members Delete` })
+    .getByRole("link", { name: "Delete" })
+    .click();
+  await page.getByRole("button", { name: "Proceed" }).click();
 }
 
 /**
@@ -75,10 +83,55 @@ export async function deleteTeam(): Promise<void> {
  * @param page
  * @param userId
  */
-export async function addUserToTeam(): Promise<void> {
-  // TO BE IMPLEMENTED
-  // Go to user page list
-  // Select the first user
-  // Edit the user
-  // Add the user to the team
+export async function addUserToTeam(
+  page: Page,
+  userInformation: UserInformation,
+  teamName: string
+): Promise<void> {
+  await page.goto("https://c.hr.dmerej.info/employees");
+  await page
+    .getByRole("row", { name: `${userInformation.name} ${userInformation.email} no Edit Delete` })
+    .getByRole("link", { name: "Edit" })
+    .click();
+  const addUserToTeamPage = new AddUserToTeamPage(page);
+  await addUserToTeamPage.goto();
+  await addUserToTeamPage.fillTeamSelect(teamName);
+  await addUserToTeamPage.clickAdd();
+}
+
+/**
+ * Update user basic information
+ * @param page
+ * @param userInformation
+ */
+export async function updateUser(
+  page: Page,
+  oldUserInformation: UserInformation,
+  updateUserInformation: UserInformation,
+  updateType: string
+): Promise<void> {
+  await page.goto("https://c.hr.dmerej.info/employees");
+  await page
+    .getByRole("row", { name: `${oldUserInformation.name} ${oldUserInformation.email} no Edit Delete` })
+    .getByRole("link", { name: "Edit" })
+    .click();
+  // Check which information to update
+  const updateUserPage = new UpdateUserPage(page, updateType);
+  await updateUserPage.gotoUpdateType();
+  await updateUserPage.fillForm(
+    updateUserInformation.name,
+    updateUserInformation.email,
+    updateUserInformation.address_line1,
+    updateUserInformation.address_line2,
+    updateUserInformation.city,
+    updateUserInformation.zipCode,
+    updateUserInformation.jobTitle
+  );
+  if (
+    updateType === constants.UPDATE_BASIC_INFO ||
+    updateType === constants.UPDATE_CONTRACT ||
+    updateType === constants.UPDATE_ADDRESS
+  ) {
+    await updateUserPage.clickUpdate();
+  }
 }
